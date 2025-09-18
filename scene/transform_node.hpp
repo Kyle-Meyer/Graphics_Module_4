@@ -95,7 +95,8 @@ class TransformNode : public SceneNode
     void update(SceneState &scene_state) override;
 
   protected:
-    // Student to complete - Module 4.
+   // Composite modeling transformation matrix - stores accumulated transformations
+   Matrix4x4 composite_transform_;
 };
 
 } // namespace cg
