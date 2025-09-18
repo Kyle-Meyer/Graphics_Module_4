@@ -15,6 +15,7 @@
 
 #include "filesystem_support/file_locator.hpp"
 #include "geometry/geometry.hpp"
+#include "scene/color4.hpp"
 #include "scene/graphics.hpp"
 #include "scene/scene.hpp"
 
@@ -24,6 +25,7 @@
 #include <iostream>
 #include <thread>
 #include <vector>
+#include "Module4/unit_square_node.hpp"
 
 namespace cg
 {
@@ -71,9 +73,8 @@ void display()
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   
   // Draw the scene if it exists
-  if (g_scene_root) {
+  if (g_scene_root)
       g_scene_root->draw(g_scene_state);
-  }
   
   // Swap buffers to display the rendered frame
   SDL_GL_SwapWindow(g_sdl_window);
@@ -165,8 +166,23 @@ void construct_scene()
     {
         exit(-1);
     }
-
-    // Student to complete
+    
+    // Add a transform node to provide model matrix
+    std::shared_ptr<cg::TransformNode> transform = std::make_shared<cg::TransformNode>();
+    
+    std::shared_ptr<cg::ColorNode> color_node = std::make_shared<cg::ColorNode>(cg::Color4(0.8f, 0.2f, 0.2f, 1.0f));
+    
+    std::shared_ptr<cg::UnitSquareNode> unit_square = std::make_shared<cg::UnitSquareNode>();
+    
+    // Hierarchy: shader -> transform -> color -> geometry
+    shader->add_child(transform);
+    transform->add_child(color_node);
+    color_node->add_child(unit_square);
+    
+    g_scene_root = shader;
+    
+    std::cout << "current scene:\n";
+    g_scene_root->print_graph();
 }
 
 /**

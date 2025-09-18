@@ -8,6 +8,11 @@ namespace cg
 bool LightingShaderNode::get_locations()
 {
     position_loc_ = glGetAttribLocation(shader_program_.get_program(), "vtx_position");
+    std::cout << "vtx_position location: " << position_loc_ << std::endl;
+    
+    vertex_normal_loc_ = glGetAttribLocation(shader_program_.get_program(), "vtx_normal");
+    std::cout << "vtx_normal location: " << vertex_normal_loc_ << std::endl;
+    position_loc_ = glGetAttribLocation(shader_program_.get_program(), "vtx_position");
     if(position_loc_ < 0)
     {
         std::cout << "Error getting vtx_position location\n";
