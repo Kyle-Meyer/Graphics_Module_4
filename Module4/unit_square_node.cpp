@@ -52,7 +52,6 @@ void UnitSquareNode::create_vertices()
   vertices_[3].normal = normal;
 }
 
-/*
 void UnitSquareNode::setup_geometry()
 {
   //bind vao 
@@ -72,64 +71,11 @@ void UnitSquareNode::setup_geometry()
   glBindVertexArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
-*/ 
 
-void UnitSquareNode::setup_geometry()
-{
-    std::cout << "Setting up geometry..." << std::endl;
-    
-    // Generate and bind VAO
-    glGenVertexArrays(1, &vao_);
-    std::cout << "Generated VAO: " << vao_ << std::endl;
-    if (vao_ == 0) {
-        std::cout << "ERROR: Failed to generate VAO!" << std::endl;
-        return;
-    }
-    glBindVertexArray(vao_);
-    
-    // Check for errors
-    GLenum error = glGetError();
-    if (error != GL_NO_ERROR) {
-        std::cout << "OpenGL error after VAO setup: " << error << std::endl;
-    }
-    
-    // Generate and bind VBO
-    glGenBuffers(1, &vbo_);
-    std::cout << "Generated VBO: " << vbo_ << std::endl;
-    if (vbo_ == 0) {
-        std::cout << "ERROR: Failed to generate VBO!" << std::endl;
-        return;
-    }
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-    
-    // Upload vertex data to VBO
-    std::cout << "Uploading " << NUM_VERTICES * sizeof(VertexAndNormal) << " bytes" << std::endl;
-    glBufferData(GL_ARRAY_BUFFER, 
-                 NUM_VERTICES * sizeof(VertexAndNormal), 
-                 vertices_, 
-                 GL_STATIC_DRAW);
-    
-    error = glGetError();
-    if (error != GL_NO_ERROR) {
-        std::cout << "OpenGL error after buffer data: " << error << std::endl;
-    }
-    
-    // Unbind
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    
-    std::cout << "Geometry setup complete!" << std::endl;
-}
 
 void UnitSquareNode::draw(SceneState &scene_state)
 {
 
-    std::cout << "Matrix uniform locations:" << std::endl;
-    std::cout << "  pvm_matrix_loc: " << scene_state.pvm_matrix_loc << std::endl;
-    std::cout << "  model_matrix_loc: " << scene_state.model_matrix_loc << std::endl;
-    std::cout << "  normal_matrix_loc: " << scene_state.normal_matrix_loc << std::endl;
-    std::cout << "  material_diffuse_loc: " << scene_state.material_diffuse_loc << std::endl;
-    
     GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
         std::cout << "OpenGL error before draw: " << error << std::endl;

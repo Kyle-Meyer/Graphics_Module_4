@@ -105,9 +105,11 @@ bool handle_key_event(const SDL_Event &event)
  */
 void reshape(int32_t width, int32_t height)
 {
-    // Student TODO - complete this so the viewport remains square and centered in
-    // the window
-    glViewport(0, 0, width, height);
+    int32_t size = std::min(width, height);
+    int32_t x_offset = (width - size) / 2;
+    int32_t y_offset = (height - size) / 2;
+    
+    glViewport(x_offset, y_offset, size, size);
 }
 
 /**
@@ -169,7 +171,8 @@ void construct_scene()
     
     // Add a transform node to provide model matrix
     std::shared_ptr<cg::TransformNode> transform = std::make_shared<cg::TransformNode>();
-    
+    transform->translate(0.0f, 0.0f, 10.0f);  // Move it closer to camera
+    transform->scale(200.0f, 200.0f, 1.0f);  // Make it 20x bigger
     std::shared_ptr<cg::ColorNode> color_node = std::make_shared<cg::ColorNode>(cg::Color4(0.8f, 0.2f, 0.2f, 1.0f));
     
     std::shared_ptr<cg::UnitSquareNode> unit_square = std::make_shared<cg::UnitSquareNode>();
