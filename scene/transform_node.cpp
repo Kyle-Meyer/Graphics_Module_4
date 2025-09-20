@@ -48,49 +48,39 @@ void TransformNode::scale(float x, float y, float z)
 
 void TransformNode::draw(SceneState &scene_state)
 {
-   // save the current model matrix 
-   scene_state.push_transforms();
+    // Save the current model matrix state by pushing it onto the stack
+    scene_state.push_transforms();
+    
+    // Apply this transform node's transformation to the current model matrix
+    scene_state.model_matrix *= composite_transform_;
+    
+    // Calculate the normal matrix (inverse transpose of upper 3x3 of model matrix)
+    // For transforming normals, we need the inverse transpose to handle non-uniform scaling
+    Matrix4x4 normal_matrix = scene_state.model_matrix;
+    
+    // For most cases, especially with uniform scaling and rotations, we can use
+    // the upper 3x3 of the model matrix directly. For non-uniform scaling,
+    // we would need the inverse transpose, but let's try the direct approach first.
+    
+    // Calculate composite PVM matrix (projection * view * model)
+    Matrix4x4 pvm_matrix = scene_state.pv * scene_state.model_matrix;
+    
+    // Set the GLSL uniforms if their locations are valid
+    if (scene_state.model_matrix_loc >= 0) 
+        glUniformMatrix4fv(scene_state.model_matrix_loc, 1, GL_FALSE, scene_state.model_matrix.get());
+    
+    if (scene_state.normal_matrix_loc >= 0) 
+        glUniformMatrix4fv(scene_state.normal_matrix_loc, 1, GL_FALSE, normal_matrix.get());
+    
+    if (scene_state.pvm_matrix_loc >= 0) 
+        glUniformMatrix4fv(scene_state.pvm_matrix_loc, 1, GL_FALSE, pvm_matrix.get());
+        
 
-   //apply this node's transform to the current matrix
-   scene_state.model_matrix *= composite_transform_;
-
-   //calc the normal (inverse transpose of upper 3x3)
-   Matrix4x4 normal;
-
-   //extract upper 3x3
-   Matrix4x4 upper3;
-   upper3.set_identity();
-
-   //copy 3x3 
-   upper3.m00() = scene_state.model_matrix.m00();
-   upper3.m01() = scene_state.model_matrix.m00();
-   upper3.m02() = scene_state.model_matrix.m00();
-   upper3.m10() = scene_state.model_matrix.m00();
-   upper3.m11() = scene_state.model_matrix.m00();
-   upper3.m12() = scene_state.model_matrix.m00();
-   upper3.m20() = scene_state.model_matrix.m00();
-   upper3.m21() = scene_state.model_matrix.m00();
-   upper3.m22() = scene_state.model_matrix.m00();
-
-   //get inverse transpose for normal 
-   normal = upper3.get_inverse().get_transpose();
-
-   //calculate the composite pvm: projection, view, model
-   Matrix4x4 pvm = scene_state.pv * scene_state.model_matrix;
-
-   //set the GLSL uniforms if locations are invalid 
-   if(scene_state.model_matrix_loc >= 0)
-      glUniformMatrix4fv(scene_state.model_matrix_loc, 1, GL_FALSE, scene_state.model_matrix.get());
-   if (scene_state.normal_matrix_loc >= 0)
-      glUniformMatrix4fv(scene_state.normal_matrix_loc, 1, GL_FALSE, normal.get());
-   if (scene_state.pvm_matrix_loc >= 0) 
-      glUniformMatrix4fv(scene_state.pvm_matrix_loc, 1, GL_FALSE, pvm.get());
-
-   // Draw all children
-   SceneNode::draw(scene_state);
-
-   //restore the previous model matrix 
-   scene_state.pop_transforms();
+    // Draw all children with the updated transformation state
+    SceneNode::draw(scene_state);
+    
+    // Restore the previous model matrix state by popping from the stack
+    scene_state.pop_transforms();
 }
 
 void TransformNode::update(SceneState &scene_state) {}

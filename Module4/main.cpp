@@ -220,9 +220,10 @@ void construct_scene()
     back_wall_color->add_child(unit_square);
     
     // === CEILING ===
-    // Transform: translate to z=+100, scale to 100x100
+    // Transform: translate to z=+100, flip to face downward, scale to 100x100
     auto ceiling_transform = std::make_shared<cg::TransformNode>();
     ceiling_transform->translate(0.0f, 0.0f, 100.0f);      // Position at top
+    ceiling_transform->rotate_x(180.0f);                   // Flip to face downward
     ceiling_transform->scale(100.0f, 100.0f, 1.0f);        // Scale to room size
     
     auto ceiling_color = std::make_shared<cg::ColorNode>(cg::Color4(0.1f, 0.4f, 1.0f, 1.0f)); // bluish

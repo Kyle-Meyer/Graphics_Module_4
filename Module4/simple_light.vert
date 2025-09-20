@@ -29,5 +29,3 @@ void main()
     // Convert position to clip coordinates and pass along
     gl_Position = pvm_matrix * vec4(vtx_position, 1.0);
 }
-
-
