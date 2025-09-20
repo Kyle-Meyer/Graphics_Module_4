@@ -157,11 +157,11 @@ bool handle_events()
 }
 
 /**
- * Construct the scene
+ * Construct the complete scene with room and purple box
  */
 void construct_scene()
 {
-    // Shader node
+    // Shader node (root of scene graph)
     auto shader = std::make_shared<cg::LightingShaderNode>();
     if(!shader->create("Module4/simple_light.vert", "Module4/simple_light.frag") ||
        !shader->get_locations())
@@ -169,22 +169,154 @@ void construct_scene()
         exit(-1);
     }
     
-    // Add a transform node to provide model matrix
-    std::shared_ptr<cg::TransformNode> transform = std::make_shared<cg::TransformNode>();
-    transform->translate(0.0f, 0.0f, 10.0f);  // Move it closer to camera
-    transform->scale(200.0f, 200.0f, 1.0f);  // Make it 20x bigger
-    std::shared_ptr<cg::ColorNode> color_node = std::make_shared<cg::ColorNode>(cg::Color4(0.8f, 0.2f, 0.2f, 1.0f));
-    
+    // Create a single unit square that we'll reuse for everything
     std::shared_ptr<cg::UnitSquareNode> unit_square = std::make_shared<cg::UnitSquareNode>();
     
-    // Hierarchy: shader -> transform -> color -> geometry
-    shader->add_child(transform);
-    transform->add_child(color_node);
-    color_node->add_child(unit_square);
+    // === FLOOR ===
+    // Transform: scale to 100x100, keep at Z=0
+    auto floor_transform = std::make_shared<cg::TransformNode>();
+    floor_transform->scale(100.0f, 100.0f, 1.0f);
+    
+    auto floor_color = std::make_shared<cg::ColorNode>(cg::Color4(0.6f, 0.5f, 0.2f, 1.0f)); // brownish-green
+    
+    // Hierarchy: floor_transform -> floor_color -> unit_square
+    floor_transform->add_child(floor_color);
+    floor_color->add_child(unit_square);
+    
+    // === LEFT WALL ===
+    // Transform: translate to x=-50, rotate 90° around Y, scale to 100x100
+    auto left_wall_transform = std::make_shared<cg::TransformNode>();
+    left_wall_transform->translate(-50.0f, 0.0f, 50.0f);  // Position at left edge, center height
+    left_wall_transform->rotate_y(90.0f);                 // Rotate to face right
+    left_wall_transform->scale(100.0f, 100.0f, 1.0f);     // Scale to room size
+    
+    auto left_wall_color = std::make_shared<cg::ColorNode>(cg::Color4(1.0f, 1.0f, 1.0f, 1.0f)); // white
+    
+    left_wall_transform->add_child(left_wall_color);
+    left_wall_color->add_child(unit_square);
+    
+    // === RIGHT WALL ===
+    // Transform: translate to x=+50, rotate -90° around Y, scale to 100x100
+    auto right_wall_transform = std::make_shared<cg::TransformNode>();
+    right_wall_transform->translate(50.0f, 0.0f, 50.0f);   // Position at right edge, center height
+    right_wall_transform->rotate_y(-90.0f);                // Rotate to face left
+    right_wall_transform->scale(100.0f, 100.0f, 1.0f);     // Scale to room size
+    
+    auto right_wall_color = std::make_shared<cg::ColorNode>(cg::Color4(1.0f, 1.0f, 1.0f, 1.0f)); // white
+    
+    right_wall_transform->add_child(right_wall_color);
+    right_wall_color->add_child(unit_square);
+    
+    // === BACK WALL ===
+    // Transform: translate to y=+50, rotate 90° around X, scale to 100x100
+    auto back_wall_transform = std::make_shared<cg::TransformNode>();
+    back_wall_transform->translate(0.0f, 50.0f, 50.0f);    // Position at back, center height
+    back_wall_transform->rotate_x(90.0f);                  // Rotate to face forward
+    back_wall_transform->scale(100.0f, 100.0f, 1.0f);      // Scale to room size
+    
+    auto back_wall_color = std::make_shared<cg::ColorNode>(cg::Color4(0.9f, 0.7f, 0.5f, 1.0f)); // tan
+    
+    back_wall_transform->add_child(back_wall_color);
+    back_wall_color->add_child(unit_square);
+    
+    // === CEILING ===
+    // Transform: translate to z=+100, scale to 100x100
+    auto ceiling_transform = std::make_shared<cg::TransformNode>();
+    ceiling_transform->translate(0.0f, 0.0f, 100.0f);      // Position at top
+    ceiling_transform->scale(100.0f, 100.0f, 1.0f);        // Scale to room size
+    
+    auto ceiling_color = std::make_shared<cg::ColorNode>(cg::Color4(0.1f, 0.4f, 1.0f, 1.0f)); // bluish
+    
+    ceiling_transform->add_child(ceiling_color);
+    ceiling_color->add_child(unit_square);
+    
+    // === PURPLE BOX ===
+    // Main box transform: position at (25, 25, 10), rotate 45° around Z
+    auto box_main_transform = std::make_shared<cg::TransformNode>();
+    box_main_transform->translate(25.0f, 25.0f, 10.0f);    // Position in back-right corner, 10 units up (half height)
+    box_main_transform->rotate_z(45.0f);                   // Rotate 45 degrees
+    
+    // Purple color for all box faces
+    auto purple_color = std::make_shared<cg::ColorNode>(cg::Color4(0.5f, 0.0f, 0.5f, 1.0f)); // purple
+    
+    // Box Face 1: Front (positive Y direction)
+    auto box_face1_transform = std::make_shared<cg::TransformNode>();
+    box_face1_transform->translate(0.0f, 10.0f, 0.0f);     // Move to front face
+    box_face1_transform->rotate_x(90.0f);                  // Rotate to vertical
+    box_face1_transform->scale(40.0f, 20.0f, 1.0f);        // Scale to box dimensions
+    
+    box_face1_transform->add_child(purple_color);
+    purple_color->add_child(unit_square);
+    
+    // Box Face 2: Back (negative Y direction)
+    auto box_face2_transform = std::make_shared<cg::TransformNode>();
+    box_face2_transform->translate(0.0f, -10.0f, 0.0f);    // Move to back face
+    box_face2_transform->rotate_x(90.0f);                  // Rotate to vertical - same as front face
+    box_face2_transform->rotate_z(180.0f);                 // Flip to face outward
+    box_face2_transform->scale(40.0f, 20.0f, 1.0f);        // Scale to box dimensions
+    
+    auto purple_color2 = std::make_shared<cg::ColorNode>(cg::Color4(0.5f, 0.0f, 0.5f, 1.0f));
+    box_face2_transform->add_child(purple_color2);
+    purple_color2->add_child(unit_square);
+    
+    // Box Face 3: Left (negative X direction)
+    auto box_face3_transform = std::make_shared<cg::TransformNode>();
+    box_face3_transform->translate(-20.0f, 0.0f, 0.0f);    // Move to left face
+    box_face3_transform->rotate_y(-90.0f);                 // Rotate to vertical
+    box_face3_transform->scale(20.0f, 20.0f, 1.0f);        // Scale to box dimensions
+    
+    auto purple_color3 = std::make_shared<cg::ColorNode>(cg::Color4(0.5f, 0.0f, 0.5f, 1.0f));
+    box_face3_transform->add_child(purple_color3);
+    purple_color3->add_child(unit_square);
+    
+    // Box Face 4: Right (positive X direction)
+    auto box_face4_transform = std::make_shared<cg::TransformNode>();
+    box_face4_transform->translate(20.0f, 0.0f, 0.0f);     // Move to right face
+    box_face4_transform->rotate_y(90.0f);                  // Rotate to vertical
+    box_face4_transform->scale(20.0f, 20.0f, 1.0f);        // Scale to box dimensions
+    
+    auto purple_color4 = std::make_shared<cg::ColorNode>(cg::Color4(0.5f, 0.0f, 0.5f, 1.0f));
+    box_face4_transform->add_child(purple_color4);
+    purple_color4->add_child(unit_square);
+    
+    // Box Face 5: Top (positive Z direction)
+    auto box_face5_transform = std::make_shared<cg::TransformNode>();
+    box_face5_transform->translate(0.0f, 0.0f, 10.0f);     // Move to top face
+    box_face5_transform->scale(40.0f, 20.0f, 1.0f);        // Scale to box dimensions
+    
+    auto purple_color5 = std::make_shared<cg::ColorNode>(cg::Color4(0.5f, 0.0f, 0.5f, 1.0f));
+    box_face5_transform->add_child(purple_color5);
+    purple_color5->add_child(unit_square);
+    
+    // Box Face 6: Bottom (negative Z direction) - rests on floor
+    auto box_face6_transform = std::make_shared<cg::TransformNode>();
+    box_face6_transform->translate(0.0f, 0.0f, -10.0f);    // Move to bottom face
+    box_face6_transform->scale(40.0f, 20.0f, 1.0f);        // Scale to box dimensions
+    
+    auto purple_color6 = std::make_shared<cg::ColorNode>(cg::Color4(0.5f, 0.0f, 0.5f, 1.0f));
+    box_face6_transform->add_child(purple_color6);
+    purple_color6->add_child(unit_square);
+    
+    // Add all box faces to the main box transform
+    box_main_transform->add_child(box_face1_transform);
+    box_main_transform->add_child(box_face2_transform);
+    box_main_transform->add_child(box_face3_transform);
+    box_main_transform->add_child(box_face4_transform);
+    box_main_transform->add_child(box_face5_transform);
+    box_main_transform->add_child(box_face6_transform);
+    
+    // === BUILD FINAL SCENE GRAPH ===
+    // Add all room elements and box to the shader node
+    shader->add_child(floor_transform);
+    shader->add_child(left_wall_transform);
+    shader->add_child(right_wall_transform);
+    shader->add_child(back_wall_transform);
+    shader->add_child(ceiling_transform);
+    shader->add_child(box_main_transform);
     
     g_scene_root = shader;
     
-    std::cout << "current scene:\n";
+    std::cout << "Complete room scene constructed:\n";
     g_scene_root->print_graph();
 }
 
@@ -236,6 +368,9 @@ bool initialize_graphics()
 
     // Initialize OpenGL settings
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);  // Counter-clockwise winding is front-facing
     glEnable(GL_MULTISAMPLE);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);  // Black background
 
