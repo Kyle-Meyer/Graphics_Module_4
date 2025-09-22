@@ -117,11 +117,6 @@ void UnitSquareNode::draw(SceneState &scene_state)
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
 
-    error = glGetError();
-    if (error != GL_NO_ERROR) {
-        std::cout << "OpenGL error after draw: " << error << std::endl;
-    }
-
   GeometryNode::draw(scene_state);
 }
 
