@@ -344,7 +344,7 @@ bool initialize_graphics()
 
     // Create the window
     g_sdl_window = SDL_CreateWindow(
-        "Computer Graphics Module 4 - [Your Name Here]",  // Replace with your name
+        "Computer Graphics Module 4 - Kyle Meyer",  // Replace with your name
         800, 800,                                          // width, height
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
     );
